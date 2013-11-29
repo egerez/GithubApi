@@ -1,0 +1,92 @@
+#%RAML 0.8
+---
+title: GitHub API
+version: v3
+baseUri: https://api.github.com/
+securitySchemes:
+ - oauth_2_0: !include securitySchemes/oauth_2_0.raml # This scheme  is a protocol that lets external apps request authorization to private details in a user's GitHub account without getting their password. 
+ 
+securedBy: [ oauth_2_0 ]
+mediaType: application/json
+resourceTypes:
+  - base: !include resourceTypes/base.raml # You can check the current version of media type in responses.
+  - item: !include resourceTypes/item.raml 
+  - collection: !include resourceTypes/collection.raml
+traits:
+  - historical: !include traits/historical.raml #Timestamp in ISO 8601 format 
+  - filterable: !include traits/filterable.raml # All issues the authenticated user can see
+# Search
+/search:
+  /repositories: !include search-repositories.raml # The search terms
+  /code: !include search-code.raml # Search code
+  /users: !include search-users.raml # Search users
+# Events
+/events:
+  type: collection
+  get:
+   description: List public events.
+   responses:
+    200:
+      body:
+        schema: !include schemas/events-schema.json 
+        example: !include examples/events-example.json
+# Feeds
+/feeds:
+  type: collection
+  get:
+    description: |
+     List Feeds.
+     GitHub provides several timeline resources in Atom format. The Feeds API
+      lists all the feeds available to the authenticating user.
+    responses:
+      200:
+        body:
+          schema: !include schemas/feeds-schema.json
+          example: !include examples/feeds-example.json
+# Meta
+/meta:
+  type: collection
+  get:
+    description: This gives some information about GitHub.com, the service.
+    responses:
+      200:
+        body:
+          schema: !include schemas/meta-schema.json
+          example: !include examples/meta-example.json
+# Rate limi
+/rate_limit:
+  type: collection
+  get:
+    description: |
+      Get your current rate limit status
+      Note: Accessing this endpoint does not count against your rate limit.
+    responses:
+      200:
+        body:
+          schema: !include schemas/rate_limit-schema.json
+          example: !include examples/rate_limit-example.json
+# Issues
+/issues:
+  type: item
+  get:
+    is: [ filterable ]
+    description: |
+      List issues.
+      List all issues across all the authenticated user’s visible repositories.
+    responses:
+      200:
+        body:
+          schema: !include schemas/issues-schema.json
+          example: !include examples/issues-example.json
+# Other
+/notifications: !include notifications.raml # List all notifications for the current user, grouped by repository
+/gists: !include gists.raml #  List the authenticated user’s gists or if called anonymously, this will return all public gists
+/orgs/{orgId}: !include orgs-orgId.raml # Id of organisation
+/teams/{teamsId}: !include teams-teamsId.raml # Id of a team
+/repositories: !include repositories.raml # This provides a dump of every public repository, in the order that they were created
+/repos/{ownerId}/{repoId}: !include repos-ownerId-repoId.raml # Id of the owner
+/user: !include user.raml # Get the authenticated user
+/users: !include users.raml # Get all users.
+/gitignore/templates: !include gitignore-templates.raml #  List all templates available to pass as an option when creating a repository
+/markdown: !include markdown.raml 
+/networks/{ownerId}/{repoId}/events: !include networks-ownerId-repoId-events.raml # List public events for a network of repositories
